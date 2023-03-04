@@ -1,6 +1,6 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse_lazy
-from django.views.generic import FormView, RedirectView, ListView
+from django.views.generic import FormView, RedirectView, ListView, CreateView
 from .forms import LoginUserForm
 from django.contrib.auth import authenticate, login, logout
 from .models import User
@@ -38,3 +38,7 @@ class DashboardUserView(ListView):
     '''
     template_name = 'dashboard_user.html'
     queryset = User.objects.filter(id=1)
+
+
+class UploadImageView(CreateView):
+    pass
