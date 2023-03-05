@@ -1,10 +1,12 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse_lazy
-from django.views.generic import FormView, RedirectView, ListView, CreateView, View
+from django.views.generic import FormView, RedirectView, ListView, CreateView, DetailView
 from .forms import LoginUserForm, TierImageForm
 from django.contrib.auth import authenticate, login, logout
 from .models import User, Tier, TierImage
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
 
 
 class LoginView(FormView):
@@ -38,23 +40,6 @@ class DashboardUserView(LoginRequiredMixin, ListView):
     model = User
 
 
-# class UploadImageView(FormView):
-#     template_name = 'upload_image.html'
-#     form_class = TierImageForm
-#     success_url = reverse_lazy('image_links')
-#
-#     def form_valid(self, form):
-#         tier_image = form.save(commit=False)
-#         tier_image.tier = self.request.user
-#         tier_image.save()
-#         return super().form_valid(form)
-#
-#     def post(self, request, *args, **kwargs):
-#         if "cancel" in request.POST:
-#             return HttpResponseRedirect(self.success_url)
-#         else:
-#             return super(UploadImageView, self).post(request, *args, **kwargs)
-
 class UploadImageView(LoginRequiredMixin, FormView):
     template_name = 'upload_image.html'
     form_class = TierImageForm
@@ -78,11 +63,19 @@ class UploadImageView(LoginRequiredMixin, FormView):
     #     ctx['tier_images'] = TierImage.objects.filter(tier=self.request.user.tier)
     #     return ctx
 
+    # def form_valid(self, form):
+    #     # save the uploaded image and duration here
+    #     tier_image = form.save(commit=False)
+    #     tier_image.tier = self.request.user.tier
+    #     tier_image.save()
+    #     return super().form_valid(form)
+
     def form_valid(self, form):
-        # save the uploaded image and duration here
-        tier_image = form.save(commit=False)
-        tier_image.tier = self.request.user.tier
-        tier_image.save()
+        form.instance.user = self.request.user
+        form.instance.tier = self.request.user.tier
+
+        self.request.session['uploaded_image_id'] = form.save().id
+        messages.success(self.request, 'Image uploaded successfully!')
         return super().form_valid(form)
 
     def get_form_kwargs(self):
@@ -91,21 +84,24 @@ class UploadImageView(LoginRequiredMixin, FormView):
         return kwargs
 
 
-# class ImageLinksView(LoginRequiredMixin, ListView):
-#     template_name = 'dashboard_user.html'
-#     model = TierImage
-#     context_object_name = 'images'
-#
-#     def get_queryset(self):
-#         user = self.request.user
-#         tier = user.tier
-#         queryset = super().get_queryset().filter(tier=tier)
-#         return queryset
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         user = self.request.user
-#         tier = user.tier
-#
-#         return context
+class ImageLinksView(SuccessMessageMixin, DetailView):
+    template_name = 'image_links.html'
+    model = TierImage
+    # context_object_name = 'images'
+
+    def get_object(self):
+        uploaded_image_id = self.request.session.get('uploaded_image_id', None)
+        if uploaded_image_id:
+            return TierImage.objects.get(id=uploaded_image_id)
+        # return super().get_object()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        uploaded_image_id = self.request.session.get('uploaded_image_id', 'test')
+        if uploaded_image_id:
+            context['image_id'] = uploaded_image_id
+        # user_tier = self.request.user.tier.name.lower() if self.request.user.is_authenticated else 'basic'
+        # context['show_links'] = user_tier != 'basic'
+        # context['show_expiring_link'] = user_tier == 'enterprise'
+        return context
 

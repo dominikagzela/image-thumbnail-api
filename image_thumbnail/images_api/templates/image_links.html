@@ -1,0 +1,13 @@
+{% extends './base.html' %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+    <h1>Image links</b></h1>
+    <h1>ID: {{ image_id }}</b></h1>
+    {% endif %}
+<h1>{{ show_links }}</h1>
+    <a href="/upload_image"</a>Upload image<br>
+    <a href="/list_images"</a>List of your images<br><br>
+    <a href="/logout"</a>Logout
+
+{% endblock %}
