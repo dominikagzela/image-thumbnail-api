@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'images_api',
+    'easy_thumbnails',
 ]
 
 MIDDLEWARE = [
@@ -107,7 +108,7 @@ AUTH_USER_MODEL = 'images_api.User'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Warsaw'
 
 USE_I18N = True
 

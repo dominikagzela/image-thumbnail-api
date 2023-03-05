@@ -7,6 +7,10 @@ from .models import User, Tier, TierImage
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from datetime import datetime, timedelta
+from django.utils import timezone
+from easy_thumbnails.templatetags.thumbnail import thumbnail_url
+from easy_thumbnails.files import get_thumbnailer
 
 
 class LoginView(FormView):
@@ -87,6 +91,7 @@ class UploadImageView(LoginRequiredMixin, FormView):
 class ImageLinksView(SuccessMessageMixin, DetailView):
     template_name = 'image_links.html'
     model = TierImage
+
     # context_object_name = 'images'
 
     def get_object(self):
@@ -97,11 +102,40 @@ class ImageLinksView(SuccessMessageMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        uploaded_image_id = self.request.session.get('uploaded_image_id', 'test')
+        user_tier = self.request.user.tier
+        context['tier_name'] = user_tier.name
+
+        uploaded_image_id = self.request.session.get('uploaded_image_id', None)
+        if uploaded_image_id is None:
+            raise Exception('There is no uploaded image')
+        uploaded_image = TierImage.objects.get(id=uploaded_image_id)
         if uploaded_image_id:
             context['image_id'] = uploaded_image_id
-        # user_tier = self.request.user.tier.name.lower() if self.request.user.is_authenticated else 'basic'
-        # context['show_links'] = user_tier != 'basic'
-        # context['show_expiring_link'] = user_tier == 'enterprise'
-        return context
 
+        if user_tier.link_to_original:
+            context['original_link'] = 'http://127.0.0.1:8000' + uploaded_image.upload_file.url
+
+        if user_tier.expiring_links:
+            expiration_time = timezone.now() + timezone.timedelta(seconds=int(uploaded_image.duration))
+            context['expiring_link'] = expiration_time
+
+        sizes = user_tier.thumbnail_height_sizes.split(',')
+
+        original_width = uploaded_image.upload_file.width
+        original_height = uploaded_image.upload_file.height
+        aspect_ratio = original_width / original_height
+
+        thumbnailer = get_thumbnailer(uploaded_image.upload_file)
+
+        thumbnail_links = {}
+        for size in sizes:
+            height = int(size)
+            new_width = height * aspect_ratio
+            thumbnail_options = {'size': (new_width, height)}
+            thumbnail = thumbnailer.get_thumbnail(thumbnail_options)
+
+            thumbnail_link = thumbnail.url
+            thumbnail_links[f'{height}'] = 'http://127.0.0.1:8000' + thumbnail_link
+        context['thumbnail_links'] = thumbnail_links
+
+        return context
