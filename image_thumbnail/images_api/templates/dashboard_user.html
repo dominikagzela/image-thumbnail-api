@@ -2,7 +2,7 @@
 
 {% block content %}
     {% if user.is_authenticated %}
-    <p>Welcome, <b>{{ user.get_username }}</b></p>
+    <h1>Welcome, <b>{{ user.get_username }}</b></h1>
     {% endif %}
     <a href="/upload_image"</a>Upload image<br>
     <a href="/list_images"</a>List of your images<br><br>

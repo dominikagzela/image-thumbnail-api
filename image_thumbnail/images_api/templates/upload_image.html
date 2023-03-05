@@ -1,0 +1,16 @@
+{% extends './base.html' %}
+
+
+{% block content %}
+  <h1>Upload an image</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+  </form>
+
+    <br>
+    <br>
+    <a href="/dashboard_user">Home</a><br>
+    <a href="/logout">Logout</a>
+{% endblock %}

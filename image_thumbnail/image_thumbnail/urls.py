@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from images_api.views import LoginView, LogoutView, DashboardUserView, UploadImageView
+from images_api.views import LoginView, LogoutView, DashboardUserView, UploadImageView, ImageLinksView
 
 urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
@@ -25,6 +25,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('dashboard_user/', DashboardUserView.as_view(), name='dashboard-user'),
     path('upload_image/', UploadImageView.as_view(), name='upload-image'),
+    path('image_links/', ImageLinksView.as_view(), name='image-links'),
 ]
 
 if settings.DEBUG:

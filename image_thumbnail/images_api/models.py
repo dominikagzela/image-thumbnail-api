@@ -22,7 +22,7 @@ class User(AbstractUser):
 class TierImage(models.Model):
     upload_file = models.ImageField(upload_to='images/')
     duration = models.IntegerField(validators=[
-        MaxValueValidator(300),
-        MinValueValidator(300000)
-    ])
+        MinValueValidator(300),
+        MaxValueValidator(300000)
+    ], null=True, blank=True, default=None)
     tier = models.ForeignKey(Tier, on_delete=models.CASCADE)
