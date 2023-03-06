@@ -1,15 +1,11 @@
-from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse_lazy
-from django.views.generic import FormView, RedirectView, ListView, CreateView, DetailView
+from django.views.generic import FormView, RedirectView, ListView
 from .forms import LoginUserForm, TierImageForm
 from django.contrib.auth import authenticate, login, logout
-from .models import User, Tier, TierImage
-from django.contrib import messages
+from .models import User, TierImage
+
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.messages.views import SuccessMessageMixin
-from datetime import datetime, timedelta
 from django.utils import timezone
-from easy_thumbnails.templatetags.thumbnail import thumbnail_url
 from easy_thumbnails.files import get_thumbnailer
 
 
@@ -137,3 +133,15 @@ class ImageLinksView(LoginRequiredMixin, ListView):
         context['thumbnail_links'] = thumbnail_links
 
         return context
+
+
+class AllUserImagesListView(LoginRequiredMixin, ListView):
+    template_name = 'images_list.html'
+
+    def get_queryset(self):
+        return TierImage.objects.filter(tier__user=self.request.user).select_related('tier')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['all_user_images'] = ctx['object_list']
+        return ctx

@@ -1,0 +1,18 @@
+{% extends './base.html' %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+    <h1>Welcome, <b>{{ user.get_username }}</b></h1>
+    {% endif %}
+    {% if all_user_images %}
+        {% for image in all_user_images %}
+            <img src='{{ image.upload_file.url }}' alt='{{ image.upload_file.name }}'/></br>
+        {% endfor %}
+    {% else %}
+            <h2>You do not have any image. Upload your first image</h2>
+    {% endif %}<br><br>
+    <a href="/upload_image"</a>Upload image<br>
+    <a href="/dashboard_user">Home</a><br>
+    <a href="/logout"</a>Logout
+
+{% endblock %}
