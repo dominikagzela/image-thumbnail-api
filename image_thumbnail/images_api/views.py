@@ -79,7 +79,7 @@ class UploadImageView(LoginRequiredMixin, FormView):
         form.instance.tier = self.request.user.tier
 
         self.request.session['uploaded_image_id'] = form.save().id
-        messages.success(self.request, 'Image uploaded successfully!')
+        # messages.success(self.request, 'Image uploaded successfully!')
         return super().form_valid(form)
 
     def get_form_kwargs(self):
@@ -88,11 +88,9 @@ class UploadImageView(LoginRequiredMixin, FormView):
         return kwargs
 
 
-class ImageLinksView(SuccessMessageMixin, DetailView):
+class ImageLinksView(LoginRequiredMixin, ListView):
     template_name = 'image_links.html'
     model = TierImage
-
-    # context_object_name = 'images'
 
     def get_object(self):
         uploaded_image_id = self.request.session.get('uploaded_image_id', None)
