@@ -1,8 +1,6 @@
 from django import forms
-from .models import User, TierImage
-from django.contrib.auth import authenticate
+from .models import TierImage
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class LoginUserForm(forms.Form):
@@ -10,52 +8,49 @@ class LoginUserForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
 
 
-# class TierImageForm(forms.ModelForm):
-#     duration = forms.IntegerField()
-#
-#     class Meta:
-#         model = TierImage
-#         fields = ['upload_file', 'duration']
-#
-#     def clean_duration(self):
-#         duration = self.cleaned_data['duration']
-#         tier = self.cleaned_data['tier']
-#         if tier.expiring_links and (duration < 300 or duration > 400):
-#             raise forms.ValidationError('Duration should be between 300 and 400.')
-#         return duration
-
 class TierImageForm(forms.ModelForm):
     class Meta:
         model = TierImage
         fields = ['upload_file', 'duration']
         widgets = {
-            'upload_file': forms.ClearableFileInput(attrs={'required': True}),
-            'duration': forms.NumberInput(attrs={'required': True}),
+            'upload_file': forms.ClearableFileInput(attrs={'required': True,
+                                                           'accept': '.jpg, .png'}),
+
+            'duration': forms.NumberInput(attrs={'required': True,
+                                                 'min': '300',
+                                                 'max': '300000'}),
         }
         labels = {
             'upload_file': 'Image',
             'duration': 'Duration (in seconds)',
         }
         help_texts = {
+            'upload_file': 'Upload image in .jpg or .png format',
             'duration': 'Enter a number between 300 and 300.000',
+        }
+        error_messages = {
+            'upload_file': {
+                'invalid_image': 'Please upload a valid JPG or PNG image file.'},
+            'duration': {
+                'invalid_duration': 'Please enter the number between 300 and 300.000'}
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)  # get the logged-in user from the view
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         if user and user.tier and not user.tier.expiring_links:
             self.fields['duration'].widget = forms.HiddenInput()
             self.fields['duration'].required = False
 
+    def clean_upload_file(self):
+        upload_file = self.cleaned_data.get('upload_file')
+        if upload_file:
+            if not upload_file.name[-4:].lower() in ('.jpg', '.png'):
+                raise forms.ValidationError('Uploaded image should be in JPG or PNG format')
+        return upload_file
+
     def clean_duration(self):
-        duration = self.cleaned_data['duration']
+        duration = self.cleaned_data.get('duration')
         if duration is not None and not (300 <= duration <= 300000):
             raise ValidationError('Duration should be a number between 300 and 300000')
         return duration
-
-    # def clean_duration(self):
-    #     user = self.request.user  # get the logged-in user from the form
-    #     duration = self.cleaned_data['duration']
-    #     if user and user.tier and not user.tier.expiring_links and not duration:
-    #         raise forms.ValidationError('This field is required.')
-    #     return duration

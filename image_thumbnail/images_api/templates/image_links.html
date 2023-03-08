@@ -2,24 +2,23 @@
 
 {% block content %}
     {% if user.is_authenticated %}
-    <h1>Image links for user: {{ user.get_username }}</h1>
-    <h1>ID: {{ image_id }}</h1>
-    <h1>Tier name: {{ tier_name }}</h1>
+    <h3>Image links for user: {{ user.get_username }}</h3>
+    <h3>Image id: {{ image_id }}</h3>
+    <h3>Tier name: {{ tier_name }}</h3>
+
     {% if original_link %}
-        <h1>Original link: {{ original_link }}</h1>
+        <h3>Original link: {{ original_link }}</h3>
     {% endif %}
     {% if expiring_link %}
-        <h1>Expiring link: {{ expiring_link }}</h1>
+        <h3>Expiring link: {{ expiring_link }}</h3>
     {% endif %}
-
     {% for height, url in thumbnail_links.items %}
-        <h1>Thumbnail link for height {{ height }}: {{ url }}</h1>
+        <h3>Thumbnail link for height {{ height }}: {{ url }}</h3>
     {% endfor %}
 
-    {% endif %}
-<h1>{{ show_links }}</h1>
     <a href="/upload_image"</a>Upload image<br>
     <a href="/list_images"</a>List of your images<br><br>
     <a href="/logout"</a>Logout
 
+    {% endif %}
 {% endblock %}

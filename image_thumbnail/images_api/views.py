@@ -7,6 +7,8 @@ from .models import User, TierImage
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from easy_thumbnails.files import get_thumbnailer
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 
 
 class LoginView(FormView):
@@ -45,37 +47,11 @@ class UploadImageView(LoginRequiredMixin, FormView):
     form_class = TierImageForm
     success_url = reverse_lazy('image-links')
 
-    # def get_form_kwargs(self):
-    #     kwargs = super(UploadImageView, self).get_form_kwargs()
-    #     kwargs['user'] = self.request.user  # pass the logged-in user to the form
-    #     return kwargs
-    #
-    # def form_valid(self, form):
-    #     tier_image = TierImage(upload_file=self.request.FILES['upload_file'])
-    #     tier_image.tier = self.request.user.tier
-    #     if 'duration' in form.cleaned_data:
-    #         tier_image.duration = form.cleaned_data['duration']
-    #     tier_image.save()
-    #     return super().form_valid(form)
-    #
-    # def get_context_data(self, **kwargs):
-    #     ctx = super().get_context_data(**kwargs)
-    #     ctx['tier_images'] = TierImage.objects.filter(tier=self.request.user.tier)
-    #     return ctx
-
-    # def form_valid(self, form):
-    #     # save the uploaded image and duration here
-    #     tier_image = form.save(commit=False)
-    #     tier_image.tier = self.request.user.tier
-    #     tier_image.save()
-    #     return super().form_valid(form)
-
     def form_valid(self, form):
         form.instance.user = self.request.user
         form.instance.tier = self.request.user.tier
 
         self.request.session['uploaded_image_id'] = form.save().id
-        # messages.success(self.request, 'Image uploaded successfully!')
         return super().form_valid(form)
 
     def get_form_kwargs(self):
@@ -89,22 +65,25 @@ class ImageLinksView(LoginRequiredMixin, ListView):
     model = TierImage
 
     def get_object(self):
-        uploaded_image_id = self.request.session.get('uploaded_image_id', None)
+        uploaded_image_id = self.request.session.get('uploaded_image_id')
         if uploaded_image_id:
-            return TierImage.objects.get(id=uploaded_image_id)
-        # return super().get_object()
+            try:
+                return TierImage.objects.get(id=uploaded_image_id)
+            except ObjectDoesNotExist:
+                raise Http404('The requested image does not exist')
+        return super().get_object()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_tier = self.request.user.tier
         context['tier_name'] = user_tier.name
 
-        uploaded_image_id = self.request.session.get('uploaded_image_id', None)
-        if uploaded_image_id is None:
+        try:
+            uploaded_image = self.get_object()
+        except ObjectDoesNotExist:
             raise Exception('There is no uploaded image')
-        uploaded_image = TierImage.objects.get(id=uploaded_image_id)
-        if uploaded_image_id:
-            context['image_id'] = uploaded_image_id
+
+        context['image_id'] = uploaded_image.id
 
         if user_tier.link_to_original:
             context['original_link'] = 'http://127.0.0.1:8000' + uploaded_image.upload_file.url
@@ -113,7 +92,10 @@ class ImageLinksView(LoginRequiredMixin, ListView):
             expiration_time = timezone.now() + timezone.timedelta(seconds=int(uploaded_image.duration))
             context['expiring_link'] = expiration_time
 
-        sizes = user_tier.thumbnail_height_sizes.split(',')
+        try:
+            thumbnail_sizes_in_list = user_tier.thumbnail_height_sizes.split(',')
+        except (ValueError, TypeError):
+            raise Exception('Invalid thumbnail sizes')
 
         original_width = uploaded_image.upload_file.width
         original_height = uploaded_image.upload_file.height
@@ -122,14 +104,15 @@ class ImageLinksView(LoginRequiredMixin, ListView):
         thumbnailer = get_thumbnailer(uploaded_image.upload_file)
 
         thumbnail_links = {}
-        for size in sizes:
+        for size in thumbnail_sizes_in_list:
             height = int(size)
             new_width = height * aspect_ratio
             thumbnail_options = {'size': (new_width, height)}
-            thumbnail = thumbnailer.get_thumbnail(thumbnail_options)
+            final_thumbnail = thumbnailer.get_thumbnail(thumbnail_options)
 
-            thumbnail_link = thumbnail.url
+            thumbnail_link = final_thumbnail.url
             thumbnail_links[f'{height}'] = 'http://127.0.0.1:8000' + thumbnail_link
+
         context['thumbnail_links'] = thumbnail_links
 
         return context
@@ -139,7 +122,11 @@ class AllUserImagesListView(LoginRequiredMixin, ListView):
     template_name = 'images_list.html'
 
     def get_queryset(self):
-        return TierImage.objects.filter(tier__user=self.request.user).select_related('tier')
+        try:
+            user_tier = self.request.user.tier
+        except ObjectDoesNotExist:
+            raise Http404('The requested tier does not exist')
+        return TierImage.objects.filter(tier=user_tier)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
