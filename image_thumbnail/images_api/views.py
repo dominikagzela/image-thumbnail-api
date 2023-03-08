@@ -9,6 +9,7 @@ from django.utils import timezone
 from easy_thumbnails.files import get_thumbnailer
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
+from django.shortcuts import redirect
 
 
 class LoginView(FormView):
@@ -50,9 +51,10 @@ class UploadImageView(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         form.instance.tier = self.request.user.tier
+        form.save()
 
-        self.request.session['uploaded_image_id'] = form.save().id
-        return super().form_valid(form)
+        self.request.session['uploaded_image_id'] = form.instance.id
+        return redirect(self.success_url)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

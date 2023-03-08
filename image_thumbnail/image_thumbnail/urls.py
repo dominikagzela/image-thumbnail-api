@@ -28,7 +28,7 @@ from images_api.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
-    path('login/', LoginView.as_view(), name='login'),
+    path('', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('dashboard_user/', DashboardUserView.as_view(), name='dashboard-user'),
     path('upload_image/', UploadImageView.as_view(), name='upload-image'),
