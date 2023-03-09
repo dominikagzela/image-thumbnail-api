@@ -16,6 +16,9 @@ from django.conf import settings
 
 
 class LoginView(FormView):
+    """
+    The view that allows the user to log in and redirects user to the dashboard page.
+    """
     template_name = 'login.html'
     form_class = LoginUserForm
     success_url = reverse_lazy('dashboard-user')
@@ -34,6 +37,9 @@ class LoginView(FormView):
 
 
 class LogoutView(LoginRequiredMixin, RedirectView):
+    """
+    The view that allows the user to log out and redirects to the login view.
+    """
     url = reverse_lazy('login')
 
     def get(self, request, *args, **kwargs):
@@ -42,11 +48,17 @@ class LogoutView(LoginRequiredMixin, RedirectView):
 
 
 class DashboardUserView(LoginRequiredMixin, ListView):
+    """
+    The view shows the dashboard for the user with the menu available.
+    """
     template_name = 'dashboard_user.html'
     model = User
 
 
 class UploadImageView(LoginRequiredMixin, FormView):
+    """
+    The view allows the user to upload an image and redirects to the Image Links view.
+    """
     template_name = 'upload_image.html'
     form_class = TierImageForm
     success_url = reverse_lazy('image-links')
@@ -66,6 +78,10 @@ class UploadImageView(LoginRequiredMixin, FormView):
 
 
 class ImageLinksView(LoginRequiredMixin, ListView):
+    """
+    The view shows the user a list of links (depending on account tier:
+    original link, expiring link, thumbnail links).
+    """
     template_name = 'image_links.html'
     model = TierImage
 
@@ -96,10 +112,10 @@ class ImageLinksView(LoginRequiredMixin, ListView):
 
         if user_tier.expiring_links and uploaded_image.duration is not None:
             expiration_time = timezone.now() + timezone.timedelta(seconds=int(uploaded_image.duration))
-            expiration_timestamp = int(expiration_time.timestamp())
-            token = signing.dumps({'url': uploaded_image.upload_file.url, 'expires': expiration_timestamp},
-                                  key=settings.SECRET_KEY)
-            expiring_link = original_link + '?token=' + token
+            # expiration_timestamp = int(expiration_time.timestamp())
+            # token = signing.dumps({'url': uploaded_image.upload_file.url, 'expires': expiration_timestamp},
+            #                       key=settings.SECRET_KEY)
+            # expiring_link = original_link + '?token=' + token
             context['expiring_link'] = expiration_time
 
         try:
@@ -129,6 +145,9 @@ class ImageLinksView(LoginRequiredMixin, ListView):
 
 
 class AllUserImagesListView(LoginRequiredMixin, ListView):
+    """
+    The view shows the user a list of his uploaded images.
+    """
     template_name = 'images_list.html'
 
     def get_queryset(self):

@@ -4,11 +4,17 @@ from django.core.exceptions import ValidationError
 
 
 class LoginUserForm(forms.Form):
+    """
+    Login User form that allows a user to log in with their username and password.
+    """
     username = forms.CharField(max_length=30)
     password = forms.CharField(widget=forms.PasswordInput)
 
 
 class TierImageForm(forms.ModelForm):
+    """
+    Tier Image form that allows a user to upload an image associated with their account tier.
+    """
     class Meta:
         model = TierImage
         fields = ['upload_file', 'duration']
@@ -26,13 +32,13 @@ class TierImageForm(forms.ModelForm):
         }
         help_texts = {
             'upload_file': 'Upload image in .jpg or .png format',
-            'duration': 'Enter a number between 300 and 300.000',
+            'duration': 'Enter a number between 300 and 300000',
         }
         error_messages = {
             'upload_file': {
                 'invalid_image': 'Please upload a valid JPG or PNG image file.'},
             'duration': {
-                'invalid_duration': 'Please enter the number between 300 and 300.000'}
+                'invalid_duration': 'Please enter the number between 300 and 300000'}
         }
 
     def __init__(self, *args, **kwargs):

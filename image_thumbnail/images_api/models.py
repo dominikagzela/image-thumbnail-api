@@ -5,6 +5,9 @@ from django.core.exceptions import ValidationError
 
 
 def validate_thumbnail_height_sizes(value):
+    """
+    A validator function that ensures that the input string contains comma-separated integers between 300 and 300000.
+    """
     try:
         sizes = [int(s.strip()) for s in value.split(',')]
     except ValueError:
@@ -16,6 +19,9 @@ def validate_thumbnail_height_sizes(value):
 
 
 class Tier(models.Model):
+    """
+    Tier model that represents a account tier.
+    """
     name = models.CharField(max_length=50)
     link_to_original = models.BooleanField(default=True)
     thumbnail_height_sizes = models.CharField(
@@ -30,10 +36,16 @@ class Tier(models.Model):
 
 
 class User(AbstractUser):
+    '''
+    User model.
+    '''
     tier = models.ForeignKey(Tier, on_delete=models.CASCADE, blank=True, null=True)
 
 
 class TierImage(models.Model):
+    """
+    Tier Image model that represents an image associated with an account tier.
+    """
     upload_file = models.ImageField(upload_to='images/')
     duration = models.IntegerField(validators=[
         MinValueValidator(300),

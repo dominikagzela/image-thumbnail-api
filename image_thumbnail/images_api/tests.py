@@ -7,7 +7,7 @@ from .views import ImageLinksView
 @pytest.mark.django_db
 def test_login_user(client, user):
     '''
-    The test of user login with valid credentials
+    The test of user login with valid credentials.
     '''
     username = 'usertest'
     password = 'passwordtest'
@@ -56,6 +56,9 @@ def test_dashboard_user(client, user):
 
 @pytest.mark.django_db
 def test_upload_image(client, user, file_data):
+    """
+    The test of uploading image by user.
+    """
     client.force_login(user)
     url = reverse_lazy('upload-image')
     response = client.get(url)
@@ -73,6 +76,9 @@ def test_upload_image(client, user, file_data):
 
 @pytest.mark.django_db
 def test_upload_image_view(client, user, file_data):
+    """
+    The test of uploading an image via the image upload view.
+    """
     client.force_login(user)
     url = reverse_lazy('upload-image')
     response = client.get(url)
@@ -90,6 +96,9 @@ def test_upload_image_view(client, user, file_data):
 
 @pytest.mark.django_db
 def test_upload_image_view_form_validity(client, user):
+    """
+    The test of form validity of the image upload view.
+    """
     client.force_login(user)
     url = reverse_lazy('upload-image')
     response = client.get(url)
@@ -98,6 +107,9 @@ def test_upload_image_view_form_validity(client, user):
 
 @pytest.mark.django_db
 def test_image_links_view_unauthenticated_user(client):
+    """
+    The test of accessing the image links view as an unauthenticated user.
+    """
     url = reverse_lazy('image-links')
     response = client.get(url)
     assert response.status_code == 302
@@ -106,6 +118,10 @@ def test_image_links_view_unauthenticated_user(client):
 
 @pytest.mark.django_db
 def test_image_links_view(factory, tier_image, user):
+    """
+    The test of accessing the image links view as an authenticated user
+    and checks that the correct data is displayed in the context.
+    """
     request = factory.get(reverse_lazy('image-links'))
     request.user = user
     request.session = {'uploaded_image_id': tier_image.id}
@@ -120,14 +136,3 @@ def test_image_links_view(factory, tier_image, user):
 
     if tier_image.duration is not None:
         assert response.context_data['expiring_link'] is not None
-
-# @pytest.mark.django_db
-# def test_all_user_images_list_view(client, factory, user, user_tier, tier_images):
-#     request = factory.get(reverse_lazy('images-list'))
-#     request.user = user
-#
-#     response = AllUserImagesListView.as_view()(request)
-#
-#     assert response.status_code == 200
-#     images = tier_images
-#     assert set(response.context_data['all_user_images']) == set(images)
