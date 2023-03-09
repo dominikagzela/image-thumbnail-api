@@ -6,10 +6,13 @@ from .models import User, TierImage
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
+from datetime import datetime
 from easy_thumbnails.files import get_thumbnailer
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.shortcuts import redirect
+from django.core import signing
+from django.conf import settings
 
 
 class LoginView(FormView):
@@ -86,12 +89,17 @@ class ImageLinksView(LoginRequiredMixin, ListView):
             raise Exception('There is no uploaded image')
 
         context['image_id'] = uploaded_image.id
+        original_link = 'http://127.0.0.1:8000' + uploaded_image.upload_file.url
 
         if user_tier.link_to_original:
-            context['original_link'] = 'http://127.0.0.1:8000' + uploaded_image.upload_file.url
+            context['original_link'] = original_link
 
         if user_tier.expiring_links and uploaded_image.duration is not None:
             expiration_time = timezone.now() + timezone.timedelta(seconds=int(uploaded_image.duration))
+            expiration_timestamp = int(expiration_time.timestamp())
+            token = signing.dumps({'url': uploaded_image.upload_file.url, 'expires': expiration_timestamp},
+                                  key=settings.SECRET_KEY)
+            expiring_link = original_link + '?token=' + token
             context['expiring_link'] = expiration_time
 
         try:
