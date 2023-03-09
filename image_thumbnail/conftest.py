@@ -5,6 +5,10 @@ from images_api.models import (
     User,
     TierImage
 )
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import RequestFactory
+from mixer.backend.django import mixer
+
 
 @pytest.fixture
 def client():
@@ -17,12 +21,33 @@ def client():
 
 
 @pytest.fixture
-def user():
+def tier():
+    return Tier.objects.create(
+        name='Test Tier',
+        link_to_original=True,
+        thumbnail_height_sizes='300,400',
+        expiring_links=True
+    )
+
+
+@pytest.fixture
+def user(tier):
     '''
     Creating test client.
     '''
     user = User.objects.create_user(username='usertest', password='passwordtest')
+    user.tier = tier
+    user.save()
     return user
+
+
+@pytest.fixture
+def tier_image(tier):
+    image_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x04\x00\x00\x00\x9a' \
+                 b'\x1e\xdd$\x00\x00\x00\rIDAT\x08\xd7c\xf8\xff\xff?\x03\x05\xfb\x01\xbf\xad\x08\t\x82\x8d \x00' \
+                 b'\x00\x00\x00IEND\xaeB`\x82'
+    image_file = SimpleUploadedFile('test_image.png', image_data, content_type='image/png')
+    return TierImage.objects.create(upload_file=image_file, duration=3600, tier=tier)
 
 
 @pytest.fixture
@@ -33,61 +58,31 @@ def image():
     image = User.objects.create_user(username='usertest', password='passwordtest')
     return image
 
-# @pytest.fixture
-# def exercise():
-#     '''
-#     Creating test exercise.
-#     '''
-#     exercise = Exercises.objects.create(
-#         name='test exercise',
-#         description='description of test exercise',
-#         url='https://www.youtube.com/watch?v=LYX6nlECcro&list=PLOLrQ9Pn6caw3ilqDR8_qezp76QuEOlHY',
-#     )
-#     return exercise
-#
-#
-# @pytest.fixture
-# def tip():
-#     '''
-#     Creating test practical tip.
-#     '''
-#     tip = PracticalTips.objects.create(tip='testowy')
-#     return tip
+
+@pytest.fixture
+def file_data():
+    with open('test_image_file/test_image.jpg', 'rb') as f:
+        return {
+            'upload_file': SimpleUploadedFile(f.name, f.read(), content_type='image/jpeg'),
+            'duration': 600,
+        }
 
 
 @pytest.fixture
-def macro_elements(user):
-    '''
-    Creating test macro elements for client.
-    '''
-    macros = MacroElements.objects.create(
-        calories=1950,
-        protein=60,
-        fat=30,
-        carb=300,
-        user=user
-    )
-    return macros
+def factory():
+    return RequestFactory()
+
+
+@pytest.fixture
+def tier_image():
+    return mixer.blend('images_api.TierImage')
 
 
 # @pytest.fixture
-# def users():
-#     '''
-#     Creating several test clients.
-#     '''
-#     user1 = User.objects.create(
-#         first_name='Dorota',
-#         username='userd',
-#         password='passd'
-#     )
-#     user2 = User.objects.create(
-#         first_name='Anna',
-#         username='usera',
-#         password='passa'
-#     )
-#     user3 = User.objects.create(
-#         first_name='Magdalena',
-#         username='userm',
-#         password='passm'
-#     )
-#     return user1, user2, user3
+# def user_tier():
+#     return mixer.blend('images_api.Tier')
+#
+#
+# @pytest.fixture
+# def tier_images(user_tier):
+#     return [mixer.blend('images_api.TierImage', tier=user_tier) for _ in range(5)]

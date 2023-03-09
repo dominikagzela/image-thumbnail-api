@@ -66,14 +66,14 @@ class ImageLinksView(LoginRequiredMixin, ListView):
     template_name = 'image_links.html'
     model = TierImage
 
-    def get_object(self):
+    def get_queryset(self):
         uploaded_image_id = self.request.session.get('uploaded_image_id')
         if uploaded_image_id:
             try:
-                return TierImage.objects.get(id=uploaded_image_id)
+                return TierImage.objects.filter(id=uploaded_image_id)
             except ObjectDoesNotExist:
                 raise Http404('The requested image does not exist')
-        return super().get_object()
+        return super().get_queryset()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -81,7 +81,7 @@ class ImageLinksView(LoginRequiredMixin, ListView):
         context['tier_name'] = user_tier.name
 
         try:
-            uploaded_image = self.get_object()
+            uploaded_image = self.get_queryset().get()
         except ObjectDoesNotExist:
             raise Exception('There is no uploaded image')
 
@@ -90,7 +90,7 @@ class ImageLinksView(LoginRequiredMixin, ListView):
         if user_tier.link_to_original:
             context['original_link'] = 'http://127.0.0.1:8000' + uploaded_image.upload_file.url
 
-        if user_tier.expiring_links:
+        if user_tier.expiring_links and uploaded_image.duration is not None:
             expiration_time = timezone.now() + timezone.timedelta(seconds=int(uploaded_image.duration))
             context['expiring_link'] = expiration_time
 
