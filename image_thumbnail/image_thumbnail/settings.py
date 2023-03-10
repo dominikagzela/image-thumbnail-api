@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-vbw$%c9qu!ffx$@%_w*j7^!jyu)0nvvdsn5@2$^fwg0tv(%!i#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', '0.0.0.0']
 
 # Application definition
 
@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'images_api',
     'easy_thumbnails',
-    'preview',
 ]
 
 MIDDLEWARE = [
@@ -74,13 +73,15 @@ WSGI_APPLICATION = 'image_thumbnail.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'HOST': '127.0.0.1',
-        'NAME': 'image_thumbnail_db',
         'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'image_thumbnail_db',
         'USER': 'postgres',
         'PASSWORD': 'coderslab',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
@@ -126,6 +127,7 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

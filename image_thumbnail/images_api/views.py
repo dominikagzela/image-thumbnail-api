@@ -105,7 +105,7 @@ class ImageLinksView(LoginRequiredMixin, ListView):
             raise Exception('There is no uploaded image')
 
         context['image_id'] = uploaded_image.id
-        original_link = 'http://127.0.0.1:8000' + uploaded_image.upload_file.url
+        original_link = 'http://127.0.0.1:8001' + uploaded_image.upload_file.url
 
         if user_tier.link_to_original:
             context['original_link'] = original_link
@@ -137,7 +137,7 @@ class ImageLinksView(LoginRequiredMixin, ListView):
             final_thumbnail = thumbnailer.get_thumbnail(thumbnail_options)
 
             thumbnail_link = final_thumbnail.url
-            thumbnail_links[f'{height}'] = 'http://127.0.0.1:8000' + thumbnail_link
+            thumbnail_links[f'{height}'] = 'http://127.0.0.1:8001' + thumbnail_link
 
         context['thumbnail_links'] = thumbnail_links
 

@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+# from image_thumbnail.images_api.views import (
 from images_api.views import (
     LoginView,
     LogoutView,

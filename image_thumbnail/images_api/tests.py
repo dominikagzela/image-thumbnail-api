@@ -131,7 +131,7 @@ def test_image_links_view(factory, tier_image, user):
     assert response.status_code == 200
     assert response.context_data['tier_name'] == user.tier.name
     assert response.context_data['image_id'] == tier_image.id
-    assert response.context_data['original_link'] == f'http://127.0.0.1:8000{tier_image.upload_file.url}'
+    assert response.context_data['original_link'] == f'http://127.0.0.1:8001{tier_image.upload_file.url}'
     assert 'thumbnail_links' in response.context_data
 
     if tier_image.duration is not None:
