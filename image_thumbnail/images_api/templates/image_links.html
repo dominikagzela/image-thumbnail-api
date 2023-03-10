@@ -10,7 +10,7 @@
         <h3>Original link: {{ original_link }}</h3>
     {% endif %}
     {% if expiring_link %}
-        <h3>Expiring link: {{ expiring_link }}</h3>
+        <h3>Expiration time: {{ expiring_link }}</h3>
     {% endif %}
     {% for height, url in thumbnail_links.items %}
         <h3>Thumbnail link for height {{ height }}: {{ url }}</h3>

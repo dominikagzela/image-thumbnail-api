@@ -3,7 +3,6 @@ from django.views.generic import FormView, RedirectView, ListView
 from .forms import LoginUserForm, TierImageForm
 from django.contrib.auth import authenticate, login, logout
 from .models import User, TierImage
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from datetime import datetime

@@ -16,7 +16,6 @@ def client():
     Testing client used to call request.
     '''
     client = Client()
-    # client = Client(enforce_csrf_checks=True)
     return client
 
 
@@ -76,13 +75,3 @@ def factory():
 @pytest.fixture
 def tier_image():
     return mixer.blend('images_api.TierImage')
-
-
-# @pytest.fixture
-# def user_tier():
-#     return mixer.blend('images_api.Tier')
-#
-#
-# @pytest.fixture
-# def tier_images(user_tier):
-#     return [mixer.blend('images_api.TierImage', tier=user_tier) for _ in range(5)]
